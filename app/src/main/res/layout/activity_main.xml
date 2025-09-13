@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <!-- Заголовок -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Математические примеры"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Контейнер для примера с белым фоном -->
+    <LinearLayout
+        android:id="@+id/exampleLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:padding="24dp"
+        android:layout_marginBottom="24dp"
+        android:elevation="4dp">
+
+        <!-- Текст примера -->
+        <TextView
+            android:id="@+id/exampleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Нажмите СТАРТ для генерации примера"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Поле для ввода ответа -->
+        <EditText
+            android:id="@+id/answerEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите ответ"
+            android:inputType="numberSigned"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:enabled="false"
+            android:gravity="center" />
+
+        <!-- Кнопки -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/startButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="СТАРТ"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp"
+                android:background="@android:color/holo_blue_light"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/checkButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ПРОВЕРКА"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp"
+                android:enabled="false"
+                android:background="@android:color/holo_green_light"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Статистика -->
+    <TextView
+        android:id="@+id/statsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Правильных: 0\nНеправильных: 0\nПроцент правильных: 0.00%"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:background="@android:color/light_gray"
+        android:padding="16dp"
+        android:textColor="@android:color/black" />
+
+</LinearLayout>
