@@ -1,5 +1,7 @@
 package com.example.reshiprimer;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,12 +13,26 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     
+    private static final String PREFS_NAME = "math_prefs";
+    private static final String KEY_OPERAND1 = "operand1";
+    private static final String KEY_OPERAND2 = "operand2";
+    private static final String KEY_OPERATOR = "operator";
+    private static final String KEY_CORRECT_ANSWER = "correctAnswer";
+    private static final String KEY_CORRECT_COUNT = "correctCount";
+    private static final String KEY_TOTAL_COUNT = "totalCount";
+    private static final String KEY_IS_EXAMPLE_GENERATED = "isExampleGenerated";
+    private static final String KEY_IS_ANSWER_CHECKED = "isAnswerChecked";
+    private static final String KEY_EXAMPLE_TEXT = "exampleText";
+    private static final String KEY_ANSWER_TEXT = "answerText";
+    private static final String KEY_STATS_TEXT = "statsText";
+
     private TextView exampleTextView;
     private EditText answerEditText;
     private Button startButton;
     private Button checkButton;
     private TextView statsTextView;
     private LinearLayout exampleLayout;
+    private Button menuButton;
     
     private int operand1, operand2;
     private String operator;
@@ -36,7 +52,13 @@ public class MainActivity extends AppCompatActivity {
         initializeViews();
         setupClickListeners();
         
-        // Восстанавливаем состояние при повороте
+        // Handle launch mode: new game or continue
+        Intent intent = getIntent();
+        boolean continueGame = intent != null && intent.getBooleanExtra("continue_game", false);
+        if (continueGame) {
+            loadFromPrefs();
+        }
+        
         if (savedInstanceState != null) {
             restoreState(savedInstanceState);
         }
@@ -49,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         checkButton = findViewById(R.id.checkButton);
         statsTextView = findViewById(R.id.statsTextView);
         exampleLayout = findViewById(R.id.exampleLayout);
+        menuButton = findViewById(R.id.menuButton);
     }
     
     private void setupClickListeners() {
@@ -65,6 +88,19 @@ public class MainActivity extends AppCompatActivity {
                 checkAnswer();
             }
         });
+        
+        if (menuButton != null) {
+            menuButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    saveToPrefs();
+                    Intent i = new Intent(MainActivity.this, MainMenuActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(i);
+                    finish();
+                }
+            });
+        }
     }
     
     private void generateExample() {
@@ -74,9 +110,8 @@ public class MainActivity extends AppCompatActivity {
         String[] operators = {"+", "-", "*", "/"};
         operator = operators[random.nextInt(4)];
         
-        // Для деления обеспечиваем целое частное
         if (operator.equals("/")) {
-            operand1 = operand2 * (random.nextInt(8) + 1); // operand1 кратно operand2
+            operand1 = operand2 * (random.nextInt(8) + 1); // ensure divisible
         }
         
         correctAnswer = calculateAnswer(operand1, operand2, operator);
@@ -84,18 +119,17 @@ public class MainActivity extends AppCompatActivity {
         String example = operand1 + " " + operator + " " + operand2 + " = ?";
         exampleTextView.setText(example);
         
-        // Сброс состояния
         answerEditText.setText("");
         answerEditText.setEnabled(true);
         checkButton.setEnabled(true);
         isAnswerChecked = false;
         isExampleGenerated = true;
         
-        // Обновляем состояние кнопок
         startButton.setEnabled(false);
         exampleLayout.setBackgroundColor(getResources().getColor(android.R.color.white));
         
         updateStats();
+        saveToPrefs();
     }
     
     private int calculateAnswer(int op1, int op2, String op) {
@@ -131,9 +165,10 @@ public class MainActivity extends AppCompatActivity {
             startButton.setEnabled(true);
             
             updateStats();
+            saveToPrefs();
             
         } catch (NumberFormatException e) {
-            // Неверный формат числа
+            // ignore
         }
     }
     
@@ -147,8 +182,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        
-        // Сохраняем состояние
         outState.putInt("operand1", operand1);
         outState.putInt("operand2", operand2);
         outState.putString("operator", operator);
@@ -176,12 +209,10 @@ public class MainActivity extends AppCompatActivity {
         answerEditText.setText(savedInstanceState.getString("answerText"));
         statsTextView.setText(savedInstanceState.getString("statsText"));
         
-        // Восстанавливаем состояние кнопок и полей
         startButton.setEnabled(!isExampleGenerated || isAnswerChecked);
         answerEditText.setEnabled(isExampleGenerated && !isAnswerChecked);
         checkButton.setEnabled(isExampleGenerated && !isAnswerChecked);
         
-        // Восстанавливаем цвет фона
         if (isAnswerChecked) {
             String userAnswerStr = answerEditText.getText().toString().trim();
             if (!userAnswerStr.isEmpty()) {
@@ -200,4 +231,53 @@ public class MainActivity extends AppCompatActivity {
             exampleLayout.setBackgroundColor(getResources().getColor(android.R.color.white));
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveToPrefs();
+    }
+
+    private void saveToPrefs() {
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor ed = sp.edit();
+        ed.putInt(KEY_OPERAND1, operand1);
+        ed.putInt(KEY_OPERAND2, operand2);
+        ed.putString(KEY_OPERATOR, operator);
+        ed.putInt(KEY_CORRECT_ANSWER, correctAnswer);
+        ed.putInt(KEY_CORRECT_COUNT, correctCount);
+        ed.putInt(KEY_TOTAL_COUNT, totalCount);
+        ed.putBoolean(KEY_IS_EXAMPLE_GENERATED, isExampleGenerated);
+        ed.putBoolean(KEY_IS_ANSWER_CHECKED, isAnswerChecked);
+        ed.putString(KEY_EXAMPLE_TEXT, exampleTextView != null ? exampleTextView.getText().toString() : "");
+        ed.putString(KEY_ANSWER_TEXT, answerEditText != null ? answerEditText.getText().toString() : "");
+        ed.putString(KEY_STATS_TEXT, statsTextView != null ? statsTextView.getText().toString() : "");
+        ed.apply();
+    }
+
+    private void loadFromPrefs() {
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        operand1 = sp.getInt(KEY_OPERAND1, 0);
+        operand2 = sp.getInt(KEY_OPERAND2, 0);
+        operator = sp.getString(KEY_OPERATOR, null);
+        correctAnswer = sp.getInt(KEY_CORRECT_ANSWER, 0);
+        correctCount = sp.getInt(KEY_CORRECT_COUNT, 0);
+        totalCount = sp.getInt(KEY_TOTAL_COUNT, 0);
+        isExampleGenerated = sp.getBoolean(KEY_IS_EXAMPLE_GENERATED, false);
+        isAnswerChecked = sp.getBoolean(KEY_IS_ANSWER_CHECKED, false);
+        String ex = sp.getString(KEY_EXAMPLE_TEXT, "");
+        String ans = sp.getString(KEY_ANSWER_TEXT, "");
+        String st = sp.getString(KEY_STATS_TEXT, "");
+
+        exampleTextView.setText(ex);
+        answerEditText.setText(ans);
+        statsTextView.setText(st);
+
+        startButton.setEnabled(!isExampleGenerated || isAnswerChecked);
+        answerEditText.setEnabled(isExampleGenerated && !isAnswerChecked);
+        checkButton.setEnabled(isExampleGenerated && !isAnswerChecked);
+        exampleLayout.setBackgroundColor(getResources().getColor(android.R.color.white));
+    }
 }
+
+
