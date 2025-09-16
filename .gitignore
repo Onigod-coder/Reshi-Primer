@@ -1,15 +1,26 @@
-*.iml
-.gradle
+# Android/Gradle
+.gradle/
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
+*.iml
+/build/
+app/build/
+
+# Log/Temp
+*.log
+*.tmp
+
+# OS
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
+
+# Keystores (do not commit real ones)
+*.jks
+*.keystore
+
+# Outputs
+*.apk
+*.aab
+app/release/
+app/debug/
+app/build/outputs/
